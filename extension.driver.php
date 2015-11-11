@@ -1,6 +1,6 @@
 <?php
 	/*
-	Copyight: Deux Huit Huit 2015
+	Copyright: Deux Huit Huit 2015
 	LICENCE: MIT http://deuxhuithuit.mit-license.org;
 	*/
 	
@@ -20,6 +20,12 @@
 		 * @var string
 		 */
 		const EXT_NAME = 'Restricted Entries';
+
+		/**
+		 * Handle of the extension
+		 * @var string
+		 */
+		const EXT_HANDLE = 'restricted_entries';
 		
 		/**
 		 * Symphony utility function that permits to
@@ -225,6 +231,16 @@
 
 		/* ********* LIB ******* */
 
+		public static function getRoles()
+		{
+			$roles = Symphony::Configuration()->get('roles', self::EXT_HANDLE);
+			if (empty($roles)) {
+				return array();
+			}
+			$roles = array_filter(array_walk(explode(',', $roles), trim));
+			return $roles;
+		}
+
 		protected static function createAuthorFormElements(array $sections, $errors)
 		{
 			$group = new XMLElement('fieldset');
@@ -269,8 +285,11 @@
 		 */
 		public function install()
 		{
-			Symphony::Configuration()->set('roles', array(), '');
-			Symphony::Configuration()->write();
+			$roles = Symphony::Configuration()->get('roles', self::EXT_HANDLE);
+			if (empty($roles)) {
+				Symphony::Configuration()->set('roles', '', self::EXT_HANDLE);
+				Symphony::Configuration()->write();
+			}
 			return true;
 		}
 
