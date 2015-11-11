@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension id="restricted_entries" status="experimental" xmlns="http://symphony-cms.com/schemas/extension/1.0">
-	<name>Restricted entries</name>
+	<name>Restricted Entries</name>
 	<description>
 		Restricts authors to selected entries only.
 		This extensions offers real security, as any attempt to view or edit un-allowed entries
@@ -26,7 +26,7 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="0.1.0" date="TBA" min="2.6.0" max="2.7.x">
+		<release version="0.1.0" date="TBA" min="2.6.4" max="2.7.x">
 			- First release
 		</release>
 	</releases>
