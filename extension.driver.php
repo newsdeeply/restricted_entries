@@ -275,7 +275,7 @@
 			$attributes = array(
 				'multiple' => 'multiple',
 				'class' => 'required',
-				//'required' => 'required',
+				'required' => 'required',
 			);
 
 			$authorCurrentRoles = array_keys(static::fetch($author->get('id')));
