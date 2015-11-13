@@ -132,12 +132,45 @@
 
 		public function addCustomAuthorColumn(array $context)
 		{
-			
+			$context['columns'][] = array(
+				'label' => __('Allowed Roles'),
+				'sortable' => false,
+				'handle' => 'allowed-roles'
+			);
 		}
 
 		public function addCustomAuthorColumnData(array $context)
 		{
-			
+			$author = $context['author'];
+			$text = __('None');
+			$inactive = true;
+			if ($author->isDeveloper() ||
+				$author->isPrimaryAccount()) {
+				$text = '*';
+			}
+			else {
+				$currentRoles = static::fetch($author->get('id'));
+				$count = count($currentRoles);
+				$inactive = $count === 0;
+				if (!$inactive) {
+					$allRoles = static::getRoles();
+					$roles = array();
+					foreach ($currentRoles as $roleHandle) {
+						$roles[$roleHandle] = isset($allRoles[$roleHandle])
+							? $allRoles[$roleHandle]
+							: __('** Unknown Role **');
+					}
+					$text = implode(', ', $roles);
+				}
+				else {
+					$text = __('None');
+				}
+			}
+			$class = null;
+			if ($inactive) {
+				$class = 'inactive';
+			}
+			$context['tableData'][] = Widget::TableData($text, $class);
 		}
 
 
