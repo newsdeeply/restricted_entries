@@ -37,7 +37,7 @@
 			// permits to make it required
 			$this->_required = false;
 			// permits the make it show in the table columns
-			$this->_showcolumn = false;
+			$this->_showcolumn = static::isAllowedToEdit();
 			// set as not required by default
 			$this->set('required', 'no');
 			// set not unique by default
@@ -109,11 +109,7 @@
 		 */
 		public function checkPostFieldData($data, &$message, $entry_id = null)
 		{
-			if (!is_array($data)) {
-				$message = __("%s: post data must be an array.", array($this->get('label')));
-				return self::__INVALID_FIELDS__;
-			}
-			else if (!isset($data['allowed_roles'])) {
+			if (is_array($data) && !isset($data['allowed_roles'])) {
 				$message = __("%s: `allowed_roles` must be an array.", array($this->get('label')));
 				return self::__INVALID_FIELDS__;
 			}
@@ -193,6 +189,9 @@
 		 */
 		public function commit()
 		{
+			// Always hide the column since the value will be dynamic
+			$this->set('show_column', 'no');
+
 			// if the default implementation works...
 			if(!parent::commit()) return false;
 
@@ -274,7 +273,46 @@
 		 */
 		public function displayPublishPanel(&$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null)
 		{
-			$wrapper->setAttribute('class', 'irrelevant');
+			if (!static::isAllowedToEdit()) {
+				$wrapper->setAttribute('class', 'irrelevant');
+			}
+			else {
+				$allRoles = extension_restricted_entries::getRoles();
+				$currentRoles = array();
+				if (is_array($data) && isset($data['allowed_roles'])) {
+					$currentRoles = extension_restricted_entries::parseRoles($data['allowed_roles']);
+				}
+				$allowedRoles = extension_restricted_entries::parseRoles($this->get('allowed_roles'));
+				foreach ($allowedRoles as $roleHandle) {
+					$allowedRoles[$roleHandle] = isset($allRoles[$roleHandle])
+						? $allRoles[$roleHandle]
+						: __('** Unknown Role **');
+				}
+				$label = Widget::Label($this->get('label'));
+				$label->appendChild(
+					self::generateRolesSelect($currentRoles, 'fields'.$fieldnamePrefix.'['.$this->get('element_name').'][allowed_roles]'.$fieldnamePostfix, $allowedRoles)
+				);
+
+				// error management
+				if($flagWithError != NULL) {
+					$wrapper->appendChild(Widget::Error($label, $flagWithError));
+				} else {
+					$wrapper->appendChild($label);
+				}
+			}
+		}
+
+		public function prepareTextValue($data, $entry_id = null)
+		{
+			$allRoles = extension_restricted_entries::getRoles();
+			$currentRoles = extension_restricted_entries::parseRoles($data['allowed_roles']);
+			$roles = array();
+			foreach ($currentRoles as $roleHandle) {
+				$roles[$roleHandle] = isset($allRoles[$roleHandle])
+					? $allRoles[$roleHandle]
+					: __('** Unknown Role **');
+			}
+			return implode(', ', $roles);
 		}
 
 		/**
@@ -307,8 +345,10 @@
 			$wrapper->appendChild($driv_wrap);
 		}
 
-		public static function generateRolesSelect(array $currentValues, $name) {
-			$roles = extension_restricted_entries::getRoles();
+		public static function generateRolesSelect(array $currentValues, $name, $roles = null) {
+			if (!is_array($roles)) {
+				$roles = extension_restricted_entries::getRoles();
+			}
 			asort($roles, SORT_STRING);
 			$options = array();
 			
