@@ -291,8 +291,19 @@
 
 		public static function getRoles()
 		{
-			$roles = Symphony::Configuration()->get('roles', self::EXT_HANDLE);
-			return static::parseRoles($roles);
+			$sectionId = Symphony::Configuration()->get('roles_section_id', self::EXT_HANDLE);
+			$fieldId = Symphony::Configuration()->get('roles_field_id', self::EXT_HANDLE);
+			if (!$section_id || !$fieldId) {
+				return array();
+			}
+			$field = FieldManager::fetch($fieldId);
+			$entries = EntryManager::fetch(null, $sectionId);
+			$roles = array();
+			foreach ($entries as $entry) {
+				$edata = $entry->getData();
+				$roles[$entry->get('id')] = $field->prepareTextValue($edata[$fieldId], $entry->get('id'));
+			}
+			return $roles;
 		}
 
 		protected static function createAuthorFormElements(Author &$author, array $roles, $errors)
@@ -409,11 +420,6 @@
 		 */
 		public function install()
 		{
-			$roles = Symphony::Configuration()->get('roles', self::EXT_HANDLE);
-			if (empty($roles)) {
-				Symphony::Configuration()->set('roles', '', self::EXT_HANDLE);
-				Symphony::Configuration()->write();
-			}
 			return static::createTable() && FieldRestricted_Entries::createFieldTable();
 		}
 
