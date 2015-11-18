@@ -135,11 +135,19 @@
 			$row = array();
 			// Takes privileges to edit this
 			if (!static::isAllowedToEdit()) {
-				if (!$entry_id) {
+				$currentValues = EntryManager::fetch($entry_id);
+				if (is_array($currentValues)) {
+					$currentValues = current($currentValues);
+				}
+				$currentValues = $currentValues->getData();
+				$currentValues = $currentValues[$this->get('id')];
+				if (!$entry_id || empty($currentValues)) {
 					// new entry, use default from author ???
+					$aroles = extension_restricted_entries::fetchRoles(Symphony::Author()->get('id'));
+					$row['allowed_roles'] = $aroles;
 				}
 				else {
-					// existing entry, use current value ???
+					$row['allowed_roles'] = $currentValues['allowed_roles'];
 				}
 			}
 			else {

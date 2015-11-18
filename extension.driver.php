@@ -149,7 +149,7 @@
 				$text = '*';
 			}
 			else {
-				$currentRoles = static::fetch($author->get('id'));
+				$currentRoles = static::fetchRoles($author->get('id'));
 				$count = count($currentRoles);
 				$inactive = $count === 0;
 				if (!$inactive) {
@@ -322,7 +322,7 @@
 				'required' => 'required',
 			);
 
-			$authorCurrentRoles = array_keys(static::fetch($author->get('id')));
+			$authorCurrentRoles = array_keys(static::fetchRoles($author->get('id')));
 			$options = array(
 				array('*', in_array('*', $authorCurrentRoles), __('All roles'))
 			);
@@ -382,7 +382,7 @@
 			return $ret;
 		}
 
-		protected static function fetch($author_id)
+		public static function fetchRoles($author_id)
 		{
 			$roles = Symphony::Database()->fetchCol('roles', sprintf("
 				SELECT `roles` FROM `%s`
