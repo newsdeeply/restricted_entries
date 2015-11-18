@@ -308,7 +308,7 @@
 			}
 			else {
 				$allRoles = extension_restricted_entries::getRoles();
-				$currentRoles = static::getCurrentRoles();
+				$currentRoles = static::getCurrentRoles($data);
 				$allowedRoles = $this->getAllowedRoles($allRoles);
 
 				$label = Widget::Label($this->get('label'));
