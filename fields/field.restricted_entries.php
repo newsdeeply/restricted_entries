@@ -254,10 +254,40 @@
 		 */
 		public function appendFormattedElement(&$wrapper, $data)
 		{
-			// nothing to output
+			$allRoles = extension_restricted_entries::getRoles();
+			$currentRoles = extension_restricted_entries::parseRoles($data['allowed_roles']);
+			static::fillRoles($allRoles, $currentRoles);
+			foreach ($currentRoles as $key => $value) {
+				$xmlItem = new XMLElement('item', $value);
+				$xmlItem->setAttribute('id'. $key);
+				$wrapper->appendChild($xmlItem);
+			}
 		}
 
+		private static function fillRoles(array $allRoles, array &$allowedRoles)
+		{
+			foreach ($allowedRoles as $roleHandle) {
+				$allowedRoles[$roleHandle] = isset($allRoles[$roleHandle])
+					? $allRoles[$roleHandle]
+					: __('** Unknown Role **');
+			}
+		}
 
+		private function getAllowedRoles(array $allRoles)
+		{
+			$allowedRoles = extension_restricted_entries::parseRoles($this->get('allowed_roles'));
+			static::fillRoles($allRoles, $allowedRoles);
+			return $allowedRoles;
+		}
+
+		private static function getCurrentRoles(&$data)
+		{
+			$currentRoles = array();
+			if (is_array($data) && isset($data['allowed_roles'])) {
+				$currentRoles = extension_restricted_entries::parseRoles($data['allowed_roles']);
+			}
+			return $currentRoles;
+		}
 
 
 		/* ********* UI *********** */
@@ -278,19 +308,12 @@
 			}
 			else {
 				$allRoles = extension_restricted_entries::getRoles();
-				$currentRoles = array();
-				if (is_array($data) && isset($data['allowed_roles'])) {
-					$currentRoles = extension_restricted_entries::parseRoles($data['allowed_roles']);
-				}
-				$allowedRoles = extension_restricted_entries::parseRoles($this->get('allowed_roles'));
-				foreach ($allowedRoles as $roleHandle) {
-					$allowedRoles[$roleHandle] = isset($allRoles[$roleHandle])
-						? $allRoles[$roleHandle]
-						: __('** Unknown Role **');
-				}
+				$currentRoles = static::getCurrentRoles();
+				$allowedRoles = $this->getAllowedRoles($allRoles);
+
 				$label = Widget::Label($this->get('label'));
 				$label->appendChild(
-					self::generateRolesSelect($currentRoles, 'fields'.$fieldnamePrefix.'['.$this->get('element_name').'][allowed_roles][]'.$fieldnamePostfix, $allowedRoles)
+					static::generateRolesSelect($currentRoles, 'fields'.$fieldnamePrefix.'['.$this->get('element_name').'][allowed_roles][]'.$fieldnamePostfix, $allowedRoles)
 				);
 
 				// error management
@@ -306,13 +329,8 @@
 		{
 			$allRoles = extension_restricted_entries::getRoles();
 			$currentRoles = extension_restricted_entries::parseRoles($data['allowed_roles']);
-			$roles = array();
-			foreach ($currentRoles as $roleHandle) {
-				$roles[$roleHandle] = isset($allRoles[$roleHandle])
-					? $allRoles[$roleHandle]
-					: __('** Unknown Role **');
-			}
-			return implode(', ', $roles);
+			static::fillRoles($allRoles, $currentRoles);
+			return implode(', ', $currentRoles);
 		}
 
 		/**
