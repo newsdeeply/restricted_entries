@@ -293,7 +293,7 @@
 		{
 			$sectionId = Symphony::Configuration()->get('roles_section_id', self::EXT_HANDLE);
 			$fieldId = Symphony::Configuration()->get('roles_field_id', self::EXT_HANDLE);
-			if (!$section_id || !$fieldId) {
+			if (!$sectionId || !$fieldId) {
 				return array();
 			}
 			$field = FieldManager::fetch($fieldId);

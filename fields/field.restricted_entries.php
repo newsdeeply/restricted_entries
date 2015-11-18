@@ -290,7 +290,7 @@
 				}
 				$label = Widget::Label($this->get('label'));
 				$label->appendChild(
-					self::generateRolesSelect($currentRoles, 'fields'.$fieldnamePrefix.'['.$this->get('element_name').'][allowed_roles]'.$fieldnamePostfix, $allowedRoles)
+					self::generateRolesSelect($currentRoles, 'fields'.$fieldnamePrefix.'['.$this->get('element_name').'][allowed_roles][]'.$fieldnamePostfix, $allowedRoles)
 				);
 
 				// error management
