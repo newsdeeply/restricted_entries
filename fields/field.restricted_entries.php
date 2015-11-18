@@ -67,7 +67,7 @@
 
 		public function canFilter()
 		{
-			return false;
+			return static::isAllowedToEdit();
 		}
 
 		public function canImport()
