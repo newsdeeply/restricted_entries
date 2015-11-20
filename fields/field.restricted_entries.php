@@ -37,25 +37,17 @@
 			// permits to make it required
 			$this->_required = false;
 			// permits the make it show in the table columns
-			$this->_showcolumn = static::isAllowedToEdit();
+			$this->_showcolumn = extension_restricted_entries::isAllowedToEdit();
 			// set as not required by default
 			$this->set('required', 'no');
 			// set not unique by default
 			$this->set('unique', 'no');
 		}
 
-		protected static function isAllowedToEdit()
-		{
-			$curAuthor = Symphony::Author();
-			return $curAuthor->isDeveloper() ||
-				$curAuthor->isManager() ||
-				$curAuthor->isPrimaryAccount();
-		}
-
 		public function get($setting = null)
 		{
 			if ($setting == 'show_column') {
-				return static::isAllowedToEdit() ? 'yes' : 'no';
+				return extension_restricted_entries::isAllowedToEdit() ? 'yes' : 'no';
 			}
 			return parent::get($setting);
 		}
@@ -67,7 +59,7 @@
 
 		public function canFilter()
 		{
-			return static::isAllowedToEdit();
+			return extension_restricted_entries::isAllowedToEdit();
 		}
 
 		public function canImport()
@@ -134,7 +126,7 @@
 			$status = self::__OK__;
 			$row = array();
 			// Takes privileges to edit this
-			if (!static::isAllowedToEdit()) {
+			if (!extension_restricted_entries::isAllowedToEdit()) {
 				$currentValues = EntryManager::fetch($entry_id);
 				if (is_array($currentValues)) {
 					$currentValues = current($currentValues);
@@ -311,7 +303,7 @@
 		 */
 		public function displayPublishPanel(&$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null)
 		{
-			if (!static::isAllowedToEdit()) {
+			if (!extension_restricted_entries::isAllowedToEdit()) {
 				$wrapper->setAttribute('class', 'irrelevant');
 			}
 			else {
@@ -387,6 +379,50 @@
 			));
 		}
 
+
+		/* ********* Filtering *********** */
+
+		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false) {
+			$field_id = $this->get('id');
+
+			if (!is_array($data)) {
+				$data = array($data);
+			}
+			
+			// REGEX filtering is a special case, and will only work on the first item
+			// in the array. You cannot specify multiple filters when REGEX is involved.
+			if (self::isFilterRegex($data[0])) {
+				return $this->buildRegexSQL($data[0], array('entries'), $joins, $where);
+			}
+			
+			$this->_key++;
+			
+			$where .= ' AND (1=' . ($andOperation ? '1' : '0') . ' ';
+			
+			$joins .= "
+				INNER JOIN
+					`tbl_entries_data_{$field_id}` AS `t{$field_id}_{$this->_key}`
+					ON (`e`.`id` = `t{$field_id}_{$this->_key}`.`entry_id`)
+			";
+
+			$wheres = array();
+			foreach ($data as $value) {
+				$value = MySQL::cleanValue($value);
+				if (!$value) {
+					continue;
+				}
+				$wheres[] = " `t{$field_id}_{$this->_key}`.`allowed_roles` REGEXP '" . static::addWordBoundary($value) . "' ";
+			}
+			$conjunction = $andOperation ? 'AND' : 'OR';
+			$where .= $conjunction . implode($wheres, $conjunction) . ")";
+
+			return true;
+		}
+
+		protected static function addWordBoundary($word)
+		{
+			return sprintf('([[:punct:]]|^)%s([[:blank:][:punct:]]|$)', $word);
+		}
 
 		/* ********* SQL Data Definition ************* */
 

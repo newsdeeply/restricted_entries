@@ -99,19 +99,21 @@
 					'delegate' => 'AuthorPostEdit',
 					'callback' => 'authorPostEdit',
 				),
-				/*array( //EntryPreEdit, EntryPreCreate
-					'EntryPreDelete', '/publish/',
-					'page' => '/publish/',
-					'delegate' => 'EntryPreDelete',
-					'callback' => 'entryPreDelete',
-				),*/
-				// nav + security
+				// filters
 				array(
-					'page' => '/backend/',
-					'delegate' => 'CanAccessPage',
-					'callback' => 'canAccessPage',
+					'page' => '/publish/',
+					'delegate' => 'AdjustPublishFiltering',
+					'callback' => 'adjustPublishFiltering',
 				),
 			);
+		}
+
+		public static function isAllowedToEdit()
+		{
+			$curAuthor = Symphony::Author();
+			return $curAuthor->isDeveloper() ||
+				$curAuthor->isManager() ||
+				$curAuthor->isPrimaryAccount();
 		}
 
 		/**
@@ -179,9 +181,7 @@
 			$author = $context['author'];
 			$curAuthor = Symphony::Author();
 			// Takes privileges to edit this
-			if (!$curAuthor->isDeveloper() &&
-				!$curAuthor->isManager() &&
-				!$curAuthor->isPrimaryAccount()) {
+			if (!static::isAllowedToEdit()) {
 				return;
 			}
 			// Even manager should not edit their own
@@ -215,22 +215,34 @@
 
 		public function authorPreCreate(array $context)
 		{
+			if (!static::isAllowedToEdit()) {
+				return;
+			}
 			static::validate(static::getRolesFromPOST(), $context['errors']);
 		}
 
 		public function authorPostCreate(array $context)
 		{
+			if (!static::isAllowedToEdit()) {
+				return;
+			}
 			static::save(static::getRolesFromPOST(), $context['author']);
 		}
 
 
 		public function authorPreEdit(array $context)
 		{
+			if (!static::isAllowedToEdit()) {
+				return;
+			}
 			static::validate(static::getRolesFromPOST(), $context['errors']);
 		}
 
 		public function authorPostEdit(array $context)
 		{
+			if (!static::isAllowedToEdit()) {
+				return;
+			}
 			static::save(static::getRolesFromPOST(), $context['author']);
 		}
 
@@ -264,6 +276,39 @@
 				}
 			}
 */
+		}
+
+		public function adjustPublishFiltering(array $context)
+		{
+			if (static::isAllowedToEdit()) {
+				return;
+			}
+			if (!isset($context['section-id'])) {
+				return;
+			}
+			$section = SectionManager::fetch($context['section-id']);
+			if (empty($section)) {
+				return;
+			}
+			$fields = $section->fetchFields('restricted_entries');
+			if (empty($fields)) {
+				return;
+			}
+
+			if (!$context['where']) {
+				$context['where'] = '';
+			}
+			if (!$context['joins']) {
+				$context['joins'] = '';
+			}
+
+			$userRoles = array_values(static::fetchRoles(Symphony::Author()->get('id')));
+
+			foreach ($fields as $fieldId => $field) {
+				$field->buildDSRetrievalSQL($userRoles, $context['joins'], $context['where'], false);
+			}
+
+			return true;
 		}
 
 		/* ********* LIB ******* */
