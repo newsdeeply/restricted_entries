@@ -105,6 +105,12 @@
 					'delegate' => 'AdjustPublishFiltering',
 					'callback' => 'adjustPublishFiltering',
 				),
+				// security
+				array(
+					'page' => '/backend/',
+					'delegate' => 'CanAccessPage',
+					'callback' => 'canAccessPage',
+				),
 			);
 		}
 
@@ -254,31 +260,44 @@
 			'page_limit' => $page_limit,
 			'page_url' => $page,
 			*/
-/*
+
 			$curAuthor = Symphony::Author();
-			if ($curAuthor->isDeveloper() ||
-				$curAuthor->isPrimaryAccount()) {
+			if (static::isAllowedToEdit()) {
 				return;
 			}
 			$page = Administration::instance()->Page;
 			$page_context = $page->getContext();
 			// Content pages only
-			if ($page instanceof contentPublish) {
-				$section_id = SectionManager::fetchIDFromHandle($page_context['section_handle']);
-				$hasAccess = static::canAccessSection($section_id);
-				if (!$hasAccess) {
-					// update delegate value
-					$context['allowed'] = $context['allowed'] && $hasAccess;
-					// Log that thing up
-					$message = "Access to {$context[page_url]} has been denied for user " .
-							$curAuthor->get('username');
-					Symphony::Log()->pushToLog($message, E_WARNING, true, true, false);
+			if (is_array($context['section']) && intval($context['section']['id']) > 0) {
+				$entry_id = intval($page_context['entry_id']);
+				if ($page_context['page'] == 'edit' && $entry_id > 0) {
+					
+					$filteringContext = array(
+						'section-id' => $context['section']['id'],
+						'joins' => '',
+						'where' => ''
+					);
+
+					$hasAccess = true;
+					$hasFilters = $this->adjustPublishFiltering($filteringContext);
+					if ($hasFilters) {
+						$entry = EntryManager::fetch($entry_id, null, 1, 0, $filteringContext['where'], $filteringContext['joins'], false, false, null, false);
+						$hasAccess = !empty($entry);
+					}
+
+					if (!$hasAccess) {
+						// update delegate value
+						$context['allowed'] = $context['allowed'] && $hasAccess;
+						// Log that thing up
+						$message = "Access to entry $entry_id has been denied for user " .
+								$curAuthor->get('username');
+						Symphony::Log()->pushToLog($message, E_WARNING, true, true, false);
+					}
 				}
 			}
-*/
 		}
 
-		public function adjustPublishFiltering(array $context)
+		public function adjustPublishFiltering(array &$context)
 		{
 			if (static::isAllowedToEdit()) {
 				return;
