@@ -9,9 +9,9 @@
 
 		TODO: Manager are only allowed to delegate their own rights...
 	</description>
-	<repo type="github">https://github.com/DeuxHuitHuit/restricted_entries</repo>
+	<repo type="github">https://github.com/newsdeeply/restricted_entries</repo>
 	<url type="discuss">http://www.getsymphony.com/discuss/thread/xxx/</url>
-	<url type="issues">https://github.com/DeuxHuitHuit/restricted_entries/issues</url>
+	<url type="issues">https://github.com/newsdeeply/restricted_entries/issues</url>
 	<types>
 		<type>Authors</type>
 		<type>Workflow</type>
@@ -26,7 +26,7 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="0.1.0" date="TBA" min="2.6.4" max="2.7.x">
+		<release version="0.1.0" date="2015-11-19" min="2.7.x" max="2.7.x">
 			- First release
 		</release>
 	</releases>
