@@ -232,7 +232,11 @@
 			if (!static::isAllowedToEdit()) {
 				return;
 			}
-			static::save(static::getRolesFromPOST(), $context['author']);
+			$roles = static::getRolesFromPOST();
+			if ($roles == null) {
+				return;
+			}
+			static::save($roles, $context['author']);
 		}
 
 
@@ -249,7 +253,11 @@
 			if (!static::isAllowedToEdit()) {
 				return;
 			}
-			static::save(static::getRolesFromPOST(), $context['author']);
+			$roles = static::getRolesFromPOST();
+			if ($roles == null) {
+				return;
+			}
+			static::save($roles, $context['author']);
 		}
 
 
