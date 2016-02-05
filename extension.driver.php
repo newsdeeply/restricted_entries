@@ -117,9 +117,10 @@
 		public static function isAllowedToEdit()
 		{
 			$curAuthor = Symphony::Author();
-			return $curAuthor->isDeveloper() ||
+			return $curAuthor != null && (
+				$curAuthor->isDeveloper() ||
 				$curAuthor->isManager() ||
-				$curAuthor->isPrimaryAccount();
+				$curAuthor->isPrimaryAccount());
 		}
 
 		/**
