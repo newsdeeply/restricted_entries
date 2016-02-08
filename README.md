@@ -1,6 +1,6 @@
 # Restricted Entries
 
-Version: 0.1.x
+Version: 0.2.x
 
 > Restricts authors to selected entries only.
 
