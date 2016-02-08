@@ -111,6 +111,17 @@
 					'delegate' => 'CanAccessPage',
 					'callback' => 'canAccessPage',
 				),
+				// preferences
+				array(
+					'page'		=> '/system/preferences/',
+					'delegate'	=> 'AddCustomPreferenceFieldsets',
+					'callback'	=> 'addCustomPreferenceFieldsets'
+				),
+				array(
+					'page'      => '/system/preferences/',
+					'delegate'  => 'Save',
+					'callback'  => 'savePreferences'
+				),
 			);
 		}
 
@@ -134,8 +145,8 @@
 			$c = Administration::instance()->getPageCallback();
 			
 			// publish page
-			if($c['driver'] == 'publish') {
-				
+			if($c['driver'] == 'systempreferences') {
+				Administration::instance()->Page->addScriptToHead(URL . '/extensions/restricted_entries/assets/preferences.restricted_entries.js', 100, false);
 			}
 		}
 
@@ -337,6 +348,114 @@
 			}
 
 			return true;
+		}
+
+		/**
+		 * Delegate handle that adds Custom Preference Fieldsets
+		 * @param string $page
+		 * @param array $context
+		 */
+		public function addCustomPreferenceFieldsets($context) {
+			$errors = array();
+			if (isset($context['errors'][self::EXT_HANDLE])) {
+				$errors = $context['errors'][self::EXT_HANDLE];
+			}
+			// current values
+			$sectionId = (string)Symphony::Configuration()->get('roles_section_id', self::EXT_HANDLE);
+			$fieldId = (string)Symphony::Configuration()->get('roles_field_id', self::EXT_HANDLE);
+			
+			// creates the field set
+			$fieldset = new XMLElement('fieldset');
+			$fieldset->setAttribute('class', 'settings');
+			$fieldset->appendChild(new XMLElement('legend', self::EXT_NAME));
+
+			// create a paragraph for short instructions
+			$p = new XMLElement('p', __('Please select the section and field containing your roles'), array('class' => 'help'));
+
+			// append intro paragraph
+			$fieldset->appendChild($p);
+
+			// outter wrapper
+			$out_wrapper = new XMLElement('div');
+
+			// create a wrapper
+			$wrapper = new XMLElement('div');
+			$wrapper->setAttribute('class', 'two columns');
+			$out_wrapper->appendChild($wrapper);
+
+			// append labels to field set
+			$label = Widget::Label('Roles Section',
+				Widget::Select('settings[restricted_entries][roles_section_id]', $options, array('class' => 'js-restricted-entries-section', 'data-value' => $sectionId)),
+				null, null, array('class' => 'column')
+			);
+			if (isset($errors['roles_section_id'])) {
+				$label = Widget::Error($label, $errors['roles_section_id']);
+			}
+			$wrapper->appendChild($label);
+			
+			// append labels to field set
+			$label = Widget::Label('Role name Field',
+				Widget::Select('settings[restricted_entries][roles_field_id]', $options, array('class' => 'js-restricted-entries-field', 'data-value' => $fieldId)),
+				null, null, array('class' => 'column'));
+			if (isset($errors['roles_field_id'])) {
+				$label = Widget::Error($label, $errors['roles_field_id']);
+			}
+			$wrapper->appendChild($label);
+
+			// wrapper into fieldset
+			$fieldset->appendChild($out_wrapper);
+
+			// adds the field set to the wrapper
+			$context['wrapper']->appendChild($fieldset);
+		}
+
+		/**
+		 * Delegate handle that saves the preferences
+		 * Saves settings and cleans the database acconding to the new settings
+		 * @param array $context
+		 */
+		public function savePreferences(&$context){
+			$settings = $context['settings']['restricted_entries'];
+			
+			// validate data
+			if (!is_array($settings) || empty($settings)) {
+				return;
+			}
+			
+			// sanitize data
+			foreach ($settings as $key => $value) {
+				$settings[$key] = General::intval($value);
+			}
+			
+			// validate section
+			if (empty($settings['roles_section_id']) || $settings['roles_section_id'] === -1) {
+				$context['errors'][self::EXT_HANDLE]['roles_section_id'] = __('You must select a section for your roles');
+				return;
+			}
+			else if (SectionManager::fetch($settings['roles_section_id']) == null) {
+				$context['errors'][self::EXT_HANDLE]['roles_section_id'] = __('The selected section is invalid');
+				return;
+			}
+			
+			// validate field
+			if (empty($settings['roles_field_id']) || $settings['roles_field_id'] === -1) {
+				$context['errors'][self::EXT_HANDLE]['roles_field_id'] = __('You must select a field for your roles name');
+				return;
+			}
+			$field = FieldManager::fetch($settings['roles_field_id']);
+			if (!$field) {
+				$context['errors'][self::EXT_HANDLE]['roles_field_id'] = __('The selected field is invalid');
+				return;
+			}
+			else if (General::intval($field->get('parent_section')) !== $settings['roles_section_id']) {
+				$context['errors'][self::EXT_HANDLE]['roles_field_id'] = __('The selected field is not in the selected section schema');
+				return;
+			}
+			
+			// save config
+			foreach ($settings as $key => $value) {
+				Symphony::Configuration()->get($key, $value, self::EXT_HANDLE);
+			}
 		}
 
 		/* ********* LIB ******* */
