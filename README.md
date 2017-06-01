@@ -29,7 +29,7 @@ For more information, see <http://getsymphony.com/learn/tasks/view/install-an-ex
 - Create a section to hold your roles.
 - Create at least one role in it.
 - Open `manifest/config.php`.
-- Add this entry, setting real values for ids.    
+- Add this entry, setting real values for ids.
 ```php
 ###### RESTRICTED_ENTRIES ######
 'restricted_entries' => array(
@@ -38,8 +38,8 @@ For more information, see <http://getsymphony.com/learn/tasks/view/install-an-ex
 ),
 ########
 ```
-- Go to the settings page of the section you can to restrict entries in.
-- Selected which roles can be used in this field.
+- Go to the settings page of the section you want to restrict the entries in.
+- Select which roles can be used in this field.
 - With a developer or manager account, go set one or more roles for each entries in that section.
 
 ### AKNOWLEDGMENTS ###
