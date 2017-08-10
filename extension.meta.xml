@@ -26,7 +26,7 @@
 		<!-- None -->
 	</dependencies>
 	<releases>
-		<release version="1" date="TBA" min="2.7.x" max="4.x.x" php-min="5.6.x" php-max="7.x.x">
+		<release version="0.3.0" date="2017-08-10" min="2.7.x" max="4.x.x" php-min="5.6.x" php-max="7.x.x">
 			- PHP7 Compatibility
 			- Bug Fixes
 		</release>
