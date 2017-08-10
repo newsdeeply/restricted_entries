@@ -222,7 +222,7 @@
 		 * @param array $data
 		 * @return boolean
 		 */
-		public function entryDataCleanup($entry_id, $data = NULL)
+		public function entryDataCleanup($entry_id, $data = null)
 		{
 			if (empty($entry_id) || !parent::entryDataCleanup($entry_id, $data)) {
 				return false;
@@ -252,7 +252,7 @@
 		 * @param $wrapper
 		 * @param $data
 		 */
-		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = NULL, $entry_id = NULL)
+		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = null, $entry_id = null)
 		{
 			$allRoles = extension_restricted_entries::getRoles();
 			$currentRoles = extension_restricted_entries::parseRoles($data['allowed_roles']);
@@ -301,7 +301,7 @@
 		 * @param string $fieldnamePrefix
 		 * @param string $fieldnamePostfix
 		 */
-		public function displayPublishPanel(XMLElement &$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null, $entry_id = NULL)
+		public function displayPublishPanel(XMLElement &$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null, $entry_id = null)
 		{
 			if (!extension_restricted_entries::isAllowedToEdit()) {
 				$wrapper->setAttribute('class', 'irrelevant');
@@ -317,7 +317,7 @@
 				);
 
 				// error management
-				if($flagWithError != NULL) {
+				if($flagWithError != null) {
 					$wrapper->appendChild(Widget::Error($label, $flagWithError));
 				} else {
 					$wrapper->appendChild($label);
@@ -339,7 +339,7 @@
 		 * @param XMLElement $wrapper
 		 * @param array $errors
 		 */
-		public function displaySettingsPanel(XMLElement &$wrapper, $errors = NULL)
+		public function displaySettingsPanel(XMLElement &$wrapper, $errors = null)
 		{
 			/* current selected roles */
 			$roles = extension_restricted_entries::parseRoles($this->get('allowed_roles'));
