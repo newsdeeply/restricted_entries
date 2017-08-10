@@ -7,10 +7,10 @@
 	if (!defined('__IN_SYMPHONY__')) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
 
 	require_once(EXTENSIONS . '/restricted_entries/extension.driver.php');
-	
+
 	/**
 	 *
-	 * Field class that will represent hold the data for 
+	 * Field class that will represent hold the data for
 	 * @author Deux Huit Huit
 	 *
 	 */
@@ -177,7 +177,7 @@
 		 *
 		 * Validates the field settings before saving it into the field's table
 		 */
-		public function checkFields(array &$errors, $checkForDuplicates)
+		public function checkFields(array &$errors, $checkForDuplicates = true)
 		{
 			parent::checkFields($errors, $checkForDuplicates);
 			return self::__OK__;
@@ -222,7 +222,7 @@
 		 * @param array $data
 		 * @return boolean
 		 */
-		public function entryDataCleanup($entry_id, array $data)
+		public function entryDataCleanup($entry_id, $data = NULL)
 		{
 			if (empty($entry_id) || !parent::entryDataCleanup($entry_id, $data)) {
 				return false;
@@ -252,14 +252,14 @@
 		 * @param $wrapper
 		 * @param $data
 		 */
-		public function appendFormattedElement(&$wrapper, $data)
+		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = NULL, $entry_id = NULL)
 		{
 			$allRoles = extension_restricted_entries::getRoles();
 			$currentRoles = extension_restricted_entries::parseRoles($data['allowed_roles']);
 			static::fillRoles($allRoles, $currentRoles);
 			foreach ($currentRoles as $key => $value) {
 				$xmlItem = new XMLElement('item', $value);
-				$xmlItem->setAttribute('id'. $key);
+				$xmlItem->setAttribute('id', $key);
 				$wrapper->appendChild($xmlItem);
 			}
 		}
@@ -301,7 +301,7 @@
 		 * @param string $fieldnamePrefix
 		 * @param string $fieldnamePostfix
 		 */
-		public function displayPublishPanel(&$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null)
+		public function displayPublishPanel(XMLElement &$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null, $entry_id = NULL)
 		{
 			if (!extension_restricted_entries::isAllowedToEdit()) {
 				$wrapper->setAttribute('class', 'irrelevant');
@@ -339,7 +339,7 @@
 		 * @param XMLElement $wrapper
 		 * @param array $errors
 		 */
-		public function displaySettingsPanel(&$wrapper, $errors = null)
+		public function displaySettingsPanel(XMLElement &$wrapper, $errors = NULL)
 		{
 			/* current selected roles */
 			$roles = extension_restricted_entries::parseRoles($this->get('allowed_roles'));
@@ -369,11 +369,11 @@
 			}
 			asort($roles, SORT_STRING);
 			$options = array();
-			
+
 			foreach ($roles as $roleHandle => $role) {
 				$options[] = array($roleHandle, in_array($roleHandle, $currentValues), $role);
 			}
-			
+
 			return Widget::Select($name, $options, array(
 				'multiple' => 'multiple'
 			));
@@ -388,17 +388,17 @@
 			if (!is_array($data)) {
 				$data = array($data);
 			}
-			
+
 			// REGEX filtering is a special case, and will only work on the first item
 			// in the array. You cannot specify multiple filters when REGEX is involved.
 			if (self::isFilterRegex($data[0])) {
 				return $this->buildRegexSQL($data[0], array('entries'), $joins, $where);
 			}
-			
+
 			$this->_key++;
-			
+
 			$where .= ' AND (1=' . ($andOperation ? '1' : '0') . ' ';
-			
+
 			$joins .= "
 				INNER JOIN
 					`tbl_entries_data_{$field_id}` AS `t{$field_id}_{$this->_key}`
@@ -464,17 +464,17 @@
 			");
 		}
 
-		
+
 		/**
 		 *
 		 * Drops the table needed for the settings of the field
 		 */
 		public static function deleteFieldTable() {
 			$tbl = self::FIELD_TBL_NAME;
-			
+
 			return Symphony::Database()->query("
 				DROP TABLE IF EXISTS `$tbl`
 			");
 		}
-		
+
 	}
